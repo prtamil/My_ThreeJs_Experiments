@@ -1,0 +1,108 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <style>
+      body {
+        margin: 0px;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+      var container;
+      var camera, scene, renderer;
+      var uniforms, material, mesh;
+      var mouseX = 0,
+        mouseY = 0,
+        lat = 0,
+        lon = 0,
+        phy = 0,
+        theta = 0;
+
+      var windowHalfX = window.innerWidth / 2;
+      var windowHalfY = window.innerHeight / 2;
+
+      init();
+      var startTime = Date.now();
+      animate();
+
+      function init() {
+        container = document.getElementById("container");
+
+        camera = new THREE.PerspectiveCamera(
+          50,
+          window.innerWidth / window.innerHeight,
+          1,
+          10
+        );
+        camera.position.z = 2;
+        scene = new THREE.Scene();
+
+        uniforms = {};
+        const vertexShader = `#version 300 es
+        in vec4 position;
+        void main() {
+          gl_Position = position;
+        }`;
+        const fragmentShader = `#version 300 es
+        precision highp float;
+        out vec4 outColor;
+        void main() {
+            outColor = vec4(1,0,0.5,1);
+        }`;
+        material = new THREE.RawShaderMaterial({
+          vertexShader: vertexShader,
+          fragmentShader: fragmentShader,
+          side: THREE.DoubleSide,
+          transparent: true,
+        });
+        const vertices = [0, 0, 0, 1, 0, 0.5, 0, 1, 0.7, 0, 0, 1];
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(new Float32Array(vertices), 4)
+        );
+
+        mesh = new THREE.Mesh(geometry, material);
+        scene.background = new THREE.Color(0xfffff0);
+        scene.add(mesh);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(
+          window.devicePixelRatio ? window.devicePixelRatio : 1
+        );
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        container.appendChild(renderer.domElement);
+        window.addEventListener("resize", onWindowResize);
+        //uniforms.resolution.value.x = window.innerWidth;
+        //uniforms.resolution.value.y = window.innerHeight;
+      }
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      function animate() {
+        requestAnimationFrame(animate);
+        render();
+      }
+
+      function render() {
+        var elapsedMilliseconds = Date.now() - startTime;
+        var elapsedSeconds = elapsedMilliseconds / 1000;
+        //uniforms.time.value = 60 * elapsedSeconds;
+        renderer.render(scene, camera);
+      }
+    </script>
+  </body>
+</html>
